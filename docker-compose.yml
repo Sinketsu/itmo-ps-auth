@@ -1,0 +1,29 @@
+version: '3'
+services:
+  server:
+    build: .
+    ports:
+      - "9000:9000"
+    environment:
+      - ADDR=:9000
+      - CLICKHOUSE_ADDR=clickhouse:9000
+      - CLICKHOUSE_PASSWORD=password
+      - JWT_SECRET=secret
+      - JWT_DURATION=15m
+      - REFRESH_DURATION=720h
+    depends_on:
+      - clickhouse
+
+  clickhouse:
+    image: yandex/clickhouse-server
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    environment:
+      - TZ=UTC
+    volumes:
+      - "./configs/users.xml:/etc/clickhouse-server/users.d/users.xml:ro"
+      - "./configs/init.sql:/docker-entrypoint-initdb.d/init.sql:ro"
+
+

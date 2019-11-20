@@ -1,0 +1,16 @@
+package main
+
+import (
+	"itmo-ps-auth/handlers"
+	"itmo-ps-auth/middleware"
+	"net/http"
+)
+
+func GetAPI() *http.ServeMux {
+	mux := http.NewServeMux()
+
+	mux.Handle("/", middleware.AuthRequired(http.HandlerFunc(handlers.Index)))
+	mux.HandleFunc("/signup", handlers.SignUp)
+
+	return mux
+}
