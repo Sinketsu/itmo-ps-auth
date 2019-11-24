@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/jmsleiman/jwt-go"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/spf13/viper"
 	"itmo-ps-auth/database"
 	"itmo-ps-auth/logger"

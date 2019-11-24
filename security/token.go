@@ -3,7 +3,7 @@ package security
 import (
 	"crypto/rand"
 	"encoding/base64"
-	"github.com/jmsleiman/jwt-go"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"net/http"
@@ -13,7 +13,7 @@ import (
 func NewRefreshToken() string {
 	r := make([]byte, 24)
 	rand.Read(r)
-	return base64.StdEncoding.EncodeToString(r)
+	return base64.URLEncoding.EncodeToString(r)
 }
 
 func NewJWT(login string) (string, error) {
@@ -38,7 +38,7 @@ func UpdateJWT(w http.ResponseWriter, login string) error {
 		Path:    "/",
 		Expires: time.Now().Add(viper.GetDuration("REFRESH_DURATION")),
 		HttpOnly: true,
-		//Secure: true,
+		Secure: true,
 	}
 	http.SetCookie(w, authCookie)
 

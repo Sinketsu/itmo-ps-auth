@@ -96,7 +96,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 			Path:    "/",
 			Expires: time.Now().Add(viper.GetDuration("REFRESH_DURATION")),
 			HttpOnly: true,
-			//Secure: true,
+			Secure: true,
 		}
 
 		http.SetCookie(w, refreshCookie)

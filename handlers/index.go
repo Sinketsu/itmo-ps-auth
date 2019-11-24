@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"github.com/dgrijalva/jwt-go"
 	"html/template"
 	"itmo-ps-auth/database"
 	"itmo-ps-auth/logger"
@@ -70,8 +71,18 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	p := jwt.Parser{
+		ValidMethods:         nil,
+		UseJSONNumber:        false,
+		SkipClaimsValidation: false,
+	}
+
+	JWTCookie, _ := r.Cookie("JWT")
+	token, _, _ := p.ParseUnverified(JWTCookie.Value, &jwt.StandardClaims{})
+	login := token.Claims.(*jwt.StandardClaims).Subject
+
 	err = tmpl.Execute(w, Result{
-		Login: "kek",
+		Login: login,
 		Data:  [][]DataSeries{cpu, memory, la5},
 	})
 	if err != nil {
