@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	_ "github.com/kshvakov/clickhouse"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"html/template"
 	"itmo-ps-auth/database"
@@ -14,22 +13,20 @@ import (
 	"time"
 )
 
-var (
-	log = logger.New("SignUp")
-)
+func SignIn(w http.ResponseWriter, r *http.Request) {
+	log := logger.New("SignIn")
 
-func SignUp(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
-		tmpl, err := template.New("signup.html").ParseFiles("frontend/signup.html")
+		tmpl, err := template.New("signin.html").ParseFiles("frontend/signin.html")
 		if err != nil {
-			log.WithError(err).Errorf("Can't parse signup.html")
+			log.WithError(err).Errorf("Can't parse signin.html")
 			http.Error(w, http.StatusText(http.StatusServiceUnavailable), http.StatusServiceUnavailable)
 			return
 		}
 
 		err = tmpl.Execute(w, nil)
 		if err != nil {
-			log.WithError(err).Errorf("Can't execute signup.html")
+			log.WithError(err).Errorf("Can't execute signin.html")
 			http.Error(w, http.StatusText(http.StatusServiceUnavailable), http.StatusServiceUnavailable)
 			return
 		}
@@ -64,26 +61,26 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 		ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
 		defer cancel()
 
-		row := db.QueryRowContext(ctx, "SELECT login FROM users WHERE login=?", login)
-		var tempLogin string
-		if err := row.Scan(&tempLogin); err == nil {
-			http.Error(w, "User already registered", http.StatusConflict)
-			return
-		} else if err != sql.ErrNoRows {
-			logrus.WithError(err).Errorf("Can't select users")
-			http.Error(w, http.StatusText(http.StatusServiceUnavailable), http.StatusServiceUnavailable)
+		row := db.QueryRowContext(ctx, "SELECT password FROM users WHERE login=?", login)
+
+		var hashed string
+		if err := row.Scan(&hashed); err != nil {
+			if err == sql.ErrNoRows {
+				http.Error(w, "Invalid login/password", http.StatusConflict)
+				return
+			} else {
+				log.WithError(err).Errorf("Can't select users")
+				http.Error(w, http.StatusText(http.StatusServiceUnavailable), http.StatusServiceUnavailable)
+				return
+			}
+		}
+
+		if !security.VerifyPassword(password, hashed) {
+			http.Error(w, "Invalid login/password", http.StatusConflict)
 			return
 		}
 
-		hashed := security.HashPassword(password)
 		token := security.NewRefreshToken()
-
-		err = database.ExecCtx(ctx, db, "INSERT INTO users (created, login, password) VALUES (?, ?, ?)",
-			time.Now(), login, hashed)
-		if err != nil {
-			http.Error(w, http.StatusText(http.StatusServiceUnavailable), http.StatusServiceUnavailable)
-			return
-		}
 
 		err = database.ExecCtx(ctx, db, "INSERT INTO tokens (login, value, expired) VALUES (?, ?, ?)",
 			login, token, time.Now().Add(viper.GetDuration("REFRESH_DURATION")))
@@ -104,7 +101,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 		http.SetCookie(w, refreshCookie)
 		err = security.UpdateJWT(w, login)
 		if err != nil {
-			logrus.WithError(err).Errorf("Can't update JWT")
+			log.WithError(err).Errorf("Can't update JWT")
 		}
 
 		http.Redirect(w, r, "/", http.StatusSeeOther)

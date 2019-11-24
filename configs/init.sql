@@ -11,6 +11,11 @@ CREATE TABLE IF NOT EXISTS users.tokens (
     expired DateTime
 ) ENGINE=TinyLog();
 
-
+CREATE DATABASE IF NOT EXISTS stats;
+CREATE TABLE IF NOT EXISTS stats.stats (
+    timestamp DateTime,
+    type Enum('cpu' = 1, 'memory' = 2, 'la5' = 3),
+    value Float64
+) ENGINE=StripeLog();
 
 

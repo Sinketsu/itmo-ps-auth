@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	_ "github.com/kshvakov/clickhouse"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"html/template"
 	"itmo-ps-auth/database"
@@ -14,11 +13,10 @@ import (
 	"time"
 )
 
-var (
-	log = logger.New("SignUp")
-)
 
 func SignUp(w http.ResponseWriter, r *http.Request) {
+	log := logger.New("SignUp")
+
 	if r.Method == http.MethodGet {
 		tmpl, err := template.New("signup.html").ParseFiles("frontend/signup.html")
 		if err != nil {
@@ -70,7 +68,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "User already registered", http.StatusConflict)
 			return
 		} else if err != sql.ErrNoRows {
-			logrus.WithError(err).Errorf("Can't select users")
+			log.WithError(err).Errorf("Can't select users")
 			http.Error(w, http.StatusText(http.StatusServiceUnavailable), http.StatusServiceUnavailable)
 			return
 		}
@@ -104,7 +102,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 		http.SetCookie(w, refreshCookie)
 		err = security.UpdateJWT(w, login)
 		if err != nil {
-			logrus.WithError(err).Errorf("Can't update JWT")
+			log.WithError(err).Errorf("Can't update JWT")
 		}
 
 		http.Redirect(w, r, "/", http.StatusSeeOther)

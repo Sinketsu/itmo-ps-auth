@@ -9,7 +9,7 @@
             <quota>default</quota>
             <allow_databases>
                 <database>users</database>
-                <database>traffic</database>
+                <database>stats</database>
             </allow_databases>
         </kapmon>
     </users>

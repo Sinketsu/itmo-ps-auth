@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/spf13/viper"
 	"itmo-ps-auth/logger"
+	"itmo-ps-auth/metrics"
 	"net/http"
 	"os"
 	"os/signal"
@@ -30,6 +31,7 @@ func main() {
 
 	log.Infof("Starting listen on %v", viper.GetString("ADDR"))
 	go listenHTTP(srv)
+	go metrics.Collect()
 
 	// wait for system signals
 	<-signals

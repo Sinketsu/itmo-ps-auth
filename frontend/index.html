@@ -2,9 +2,106 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Kapmon</title>
+
+    <link rel="icon" sizes="96x96" href="/static/favicon-96x96.png">
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.css">
 </head>
 <body>
-kek
+    <div class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-white border-bottom shadow-sm">
+        <h5 class="my-0 mr-md-auto font-weight-normal">Kapmon</h5>
+        <nav class="my-2 my-md-0 mr-md-3">
+            <a class="p-2 text-dark">Login: {{.Login}}</a>
+        </nav>
+        <a class="btn btn-outline-primary" href="/logout">Logout</a>
+    </div>
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-4">
+                <div class="list-group" id="list-tab" role="tablist">
+                    <a class="list-group-item list-group-item-action active" id="list-cpu-list" data-toggle="list" href="#list-cpu" role="tab">CPU %</a>
+                    <a class="list-group-item list-group-item-action" id="list-memory-list" data-toggle="list" href="#list-memory" role="tab">Memory (in Mb)</a>
+                    <a class="list-group-item list-group-item-action" id="list-la5-list" data-toggle="list" href="#list-la5" role="tab">Load average 5m</a>
+                </div>
+            </div>
+            <div class="col-8">
+                <div class="tab-content" id="nav-tabContent">
+                    <div class="tab-pane fade show active" id="list-cpu" role="tabpanel">
+                        <div class="ct-chart" id="cpu"></div>
+                    </div>
+                    <div class="tab-pane fade" id="list-memory" role="tabpanel">
+                        <div class="ct-chart" id="memory"></div>
+                    </div>
+                    <div class="tab-pane fade" id="list-la5" role="tabpanel">
+                        <div class="ct-chart" id="la5"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <script src="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.js"></script>
+    <script>
+        var la5 = new Chartist.Line('#la5', {
+            labels: [{{range (index .Data 2)}} {{.Timestamp.Format "15:04:05"}}, {{end}}],
+            series: [
+                [{{range (index .Data 2)}} {{.Value}}, {{end}}]
+            ]
+        }, {
+            low: 0,
+            showArea: true,
+            height: 400,
+            axisX: {
+                labelInterpolationFnc: function skipLabels(value, index) {
+                    return index % 5  === 0 ? value : null;
+                }
+            }
+        });
+
+        var cpu = new Chartist.Line('#cpu', {
+            labels: [{{range (index .Data 0)}} {{.Timestamp.Format "15:04:05"}}, {{end}}],
+            series: [
+                [{{range (index .Data 0)}} {{.Value}}, {{end}}]
+            ]
+        }, {
+            low: 0,
+            showArea: true,
+            height: 400,
+            axisX: {
+                labelInterpolationFnc: function skipLabels(value, index) {
+                    return index % 5  === 0 ? value : null;
+                }
+            }
+        });
+
+        var memory = Chartist.Line('#memory', {
+            labels: [{{range (index .Data 1)}} {{.Timestamp.Format "15:04:05"}}, {{end}}],
+            series: [
+                [{{range (index .Data 1)}} {{.Value}}, {{end}}]
+            ]
+        }, {
+            low: 0,
+            showArea: true,
+            height: 400,
+            axisX: {
+                labelInterpolationFnc: function skipLabels(value, index) {
+                    return index % 5  === 0 ? value : null;
+                }
+            }
+        });
+
+
+        $('#list-tab a').on('shown.bs.tab', function (e) {
+            cpu.update();
+            memory.update();
+            la5.update();
+        })
+    </script>
 </body>
 </html>

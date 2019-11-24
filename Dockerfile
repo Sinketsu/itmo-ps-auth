@@ -25,5 +25,4 @@ RUN go build -o server
 FROM scratch
 
 COPY --from=builder /go/src/app/server .
-COPY frontend frontend
 CMD ["./server"]

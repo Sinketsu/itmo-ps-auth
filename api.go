@@ -11,6 +11,7 @@ func GetAPI() *http.ServeMux {
 
 	mux.Handle("/", middleware.AuthRequired(http.HandlerFunc(handlers.Index)))
 	mux.HandleFunc("/signup", handlers.SignUp)
+	mux.HandleFunc("/signin", handlers.SignIn)
 
 	return mux
 }

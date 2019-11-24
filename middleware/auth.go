@@ -5,13 +5,15 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/jmsleiman/jwt-go"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"itmo-ps-auth/database"
+	"itmo-ps-auth/logger"
 	"itmo-ps-auth/security"
 	"net/http"
 	"time"
 )
+
+var log = logger.New("Auth")
 
 func AuthRequired(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -47,7 +49,7 @@ func AuthRequired(next http.Handler) http.Handler {
 				if alive {
 					err = security.UpdateJWT(w, login)
 					if err != nil {
-						logrus.WithError(err).Errorf("Can't update JWT")
+						log.WithError(err).Errorf("Can't update JWT")
 						http.Error(w, http.StatusText(http.StatusServiceUnavailable), http.StatusServiceUnavailable)
 						return
 					}
@@ -79,7 +81,7 @@ func CheckRefreshToken(token string) (string, bool) {
 		if err == sql.ErrNoRows {
 			return "", false
 		} else {
-			logrus.WithError(err).Errorf("Can't select tokens")
+			log.WithError(err).Errorf("Can't select tokens")
 			return "", false
 		}
 	}
