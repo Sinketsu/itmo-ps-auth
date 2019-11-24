@@ -38,23 +38,24 @@ func AuthRequired(next http.Handler) http.Handler {
 			return []byte(viper.GetString("JWT_SECRET")), nil
 		})
 
-		if _, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-			next.ServeHTTP(w, r)
-		}
+		if err != nil {
+			if ve, ok := err.(*jwt.ValidationError); ok {
+				if ve.Errors&(jwt.ValidationErrorExpired) != 0 {
+					login, alive := CheckRefreshToken(refresh.Value)
 
-		if ve, ok := err.(*jwt.ValidationError); ok {
-			if ve.Errors&(jwt.ValidationErrorExpired) != 0 {
-				login, alive := CheckRefreshToken(refresh.Value)
+					if alive {
+						err = security.UpdateJWT(w, login)
+						if err != nil {
+							log.WithError(err).Errorf("Can't update JWT")
+							http.Error(w, http.StatusText(http.StatusServiceUnavailable), http.StatusServiceUnavailable)
+							return
+						}
 
-				if alive {
-					err = security.UpdateJWT(w, login)
-					if err != nil {
-						log.WithError(err).Errorf("Can't update JWT")
-						http.Error(w, http.StatusText(http.StatusServiceUnavailable), http.StatusServiceUnavailable)
+						next.ServeHTTP(w, r)
+					} else {
+						http.Redirect(w, r, "/signin", http.StatusSeeOther)
 						return
 					}
-
-					next.ServeHTTP(w, r)
 				} else {
 					http.Redirect(w, r, "/signin", http.StatusSeeOther)
 					return
@@ -63,6 +64,10 @@ func AuthRequired(next http.Handler) http.Handler {
 				http.Redirect(w, r, "/signin", http.StatusSeeOther)
 				return
 			}
+		}
+
+		if _, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+			next.ServeHTTP(w, r)
 		}
 	})
 }
