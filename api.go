@@ -10,6 +10,7 @@ func GetAPI() *http.ServeMux {
 	mux := http.NewServeMux()
 
 	mux.Handle("/", middleware.AuthRequired(http.HandlerFunc(handlers.Index)))
+	mux.Handle("/download", middleware.AuthRequired(http.HandlerFunc(handlers.Download)))
 	mux.HandleFunc("/signup", handlers.SignUp)
 	mux.HandleFunc("/signin", handlers.SignIn)
 	mux.Handle("/logout", middleware.AuthRequired(http.HandlerFunc(handlers.Logout)))

@@ -41,10 +41,10 @@ func AuthRequired(next http.Handler) http.Handler {
 		if err != nil {
 			if ve, ok := err.(*jwt.ValidationError); ok {
 				if ve.Errors&(jwt.ValidationErrorExpired) != 0 {
-					login, alive := CheckRefreshToken(refresh.Value)
+					login, role, alive := CheckRefreshToken(refresh.Value)
 
 					if alive {
-						err = security.UpdateJWT(w, login)
+						err = security.UpdateJWT(w, login, role)
 						if err != nil {
 							log.WithError(err).Errorf("Can't update JWT")
 							http.Error(w, http.StatusText(http.StatusServiceUnavailable), http.StatusServiceUnavailable)
@@ -72,24 +72,25 @@ func AuthRequired(next http.Handler) http.Handler {
 	})
 }
 
-func CheckRefreshToken(token string) (string, bool) {
+func CheckRefreshToken(token string) (string, string, bool) {
 	db := database.Get("users")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
 	defer cancel()
 
-	row := db.QueryRowContext(ctx, "SELECT login, expired FROM tokens WHERE value=?", token)
+	row := db.QueryRowContext(ctx, "SELECT login, role, expired FROM tokens ANY LEFT JOIN users USING login WHERE value=?", token)
 
 	var login string
+	var role string
 	var expired time.Time
-	if err := row.Scan(&login, &expired); err != nil {
+	if err := row.Scan(&login, &role, &expired); err != nil {
 		if err == sql.ErrNoRows {
-			return "", false
+			return "", "", false
 		} else {
 			log.WithError(err).Errorf("Can't select tokens")
-			return "", false
+			return "", "", false
 		}
 	}
 
-	return login, time.Now().Before(expired)
+	return login, role, time.Now().Before(expired)
 }

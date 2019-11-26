@@ -41,6 +41,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 
 		login := r.Form.Get("login")
 		password := r.Form.Get("password")
+		role := r.Form.Get("role")
 
 		if len(login) == 0 {
 			http.Error(w, "login is required", http.StatusBadRequest)
@@ -49,6 +50,11 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 
 		if len(password) == 0 {
 			http.Error(w, "password is required", http.StatusBadRequest)
+			return
+		}
+
+		if !(role == security.RoleAdmin || role == security.RoleStudent) {
+			http.Error(w, "valid role is required", http.StatusBadRequest)
 			return
 		}
 
@@ -76,8 +82,8 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 		hashed := security.HashPassword(password)
 		token := security.NewRefreshToken()
 
-		err = database.ExecCtx(ctx, db, "INSERT INTO users (created, login, password) VALUES (?, ?, ?)",
-			time.Now(), login, hashed)
+		err = database.ExecCtx(ctx, db, "INSERT INTO users (created, login, password, role) VALUES (?, ?, ?, ?)",
+			time.Now(), login, hashed, role)
 		if err != nil {
 			http.Error(w, http.StatusText(http.StatusServiceUnavailable), http.StatusServiceUnavailable)
 			return
@@ -96,11 +102,11 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 			Path:    "/",
 			Expires: time.Now().Add(viper.GetDuration("REFRESH_DURATION")),
 			HttpOnly: true,
-			Secure: true,
+			//Secure: true,
 		}
 
 		http.SetCookie(w, refreshCookie)
-		err = security.UpdateJWT(w, login)
+		err = security.UpdateJWT(w, login, role)
 		if err != nil {
 			log.WithError(err).Errorf("Can't update JWT")
 		}

@@ -16,17 +16,18 @@ func NewRefreshToken() string {
 	return base64.URLEncoding.EncodeToString(r)
 }
 
-func NewJWT(login string) (string, error) {
+func NewJWT(login, role string) (string, error) {
 	authJWT := jwt.NewWithClaims(jwt.SigningMethodHS384, jwt.StandardClaims{
 		ExpiresAt: time.Now().Add(10 * time.Second).Unix(),
 		Subject:   login,
+		Id:		   role,
 	})
 
 	return authJWT.SignedString([]byte(viper.GetString("JWT_SECRET")))
 }
 
-func UpdateJWT(w http.ResponseWriter, login string) error {
-	accessToken, err := NewJWT(login)
+func UpdateJWT(w http.ResponseWriter, login string, role string) error {
+	accessToken, err := NewJWT(login, role)
 	if err != nil {
 		logrus.WithError(err).Errorf("Can't create new JWT token")
 		return err
@@ -38,7 +39,7 @@ func UpdateJWT(w http.ResponseWriter, login string) error {
 		Path:    "/",
 		Expires: time.Now().Add(viper.GetDuration("REFRESH_DURATION")),
 		HttpOnly: true,
-		Secure: true,
+		//Secure: true,
 	}
 	http.SetCookie(w, authCookie)
 

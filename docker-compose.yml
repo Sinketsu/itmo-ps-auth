@@ -12,6 +12,7 @@ services:
       - JWT_SECRET=secret
       - JWT_DURATION=15m
       - REFRESH_DURATION=720h
+      - ZIP_KEY=kaka
     volumes:
       - "./frontend:/frontend"
     depends_on:
@@ -35,9 +36,12 @@ services:
     restart: always
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - "./configs/nginx.conf:/etc/nginx/nginx.conf:ro"
       - "./static:/var/nginx/static"
+      - "/etc/letsencrypt/live/itmo.sinketsu.ru/fullchain.pem:/certs/fullchain.pem"
+      - "/etc/letsencrypt/live/itmo.sinketsu.ru/privkey.pem:/certs/privkey.pem"
     command: ["nginx", "-g", "daemon off;"]
     depends_on:
       - server

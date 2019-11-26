@@ -16,17 +16,25 @@
             <p></p>
         </div>
 
-        <div class="form-label-group">
-            <input type="text" name="login" id="inputLogin" class="form-control" placeholder="" required>
-            <div class="invalid-feedback" id="invalidLogin" hidden>
-                User already registered.
-            </div>
-            <label for="inputLogin">Login</label>
+        <div class="form-group">
+            <label for="inputState">Role</label>
+            <select id="inputState" class="form-control" name="role">
+                <option selected>student</option>
+                <option>admin</option>
+            </select>
         </div>
 
-        <div class="form-label-group">
-            <input type="password" name="password" id="inputPassword" class="form-control" placeholder="" required>
+        <div class="form-group">
+            <label for="inputLogin">Login</label>
+            <small id="invalidLogin" class="text-danger" hidden>
+                User already registered
+            </small>
+            <input type="text" name="login" class="form-control" id="inputLogin" placeholder="Login">
+        </div>
+
+        <div class="form-group">
             <label for="inputPassword">Password</label>
+            <input type="password" name="password" class="form-control" id="inputPassword" placeholder="Password">
         </div>
 
         <button class="btn btn-lg btn-primary btn-block" type="submit">Sign up</button>

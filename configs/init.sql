@@ -2,7 +2,8 @@ CREATE DATABASE IF NOT EXISTS users;
 CREATE TABLE IF NOT EXISTS users.users (
     created Date,
     login String,
-    password String
+    password String,
+    role Enum('student' = 1, 'admin' = 2)
 ) ENGINE=MergeTree(created, (login), 8192);
 
 CREATE TABLE IF NOT EXISTS users.tokens (

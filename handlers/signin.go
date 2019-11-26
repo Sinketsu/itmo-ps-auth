@@ -61,10 +61,11 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 		ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
 		defer cancel()
 
-		row := db.QueryRowContext(ctx, "SELECT password FROM users WHERE login=?", login)
+		row := db.QueryRowContext(ctx, "SELECT password, role FROM users WHERE login=?", login)
 
 		var hashed string
-		if err := row.Scan(&hashed); err != nil {
+		var role string
+		if err := row.Scan(&hashed, &role); err != nil {
 			if err == sql.ErrNoRows {
 				http.Error(w, "Invalid login/password", http.StatusConflict)
 				return
@@ -95,11 +96,11 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 			Path:    "/",
 			Expires: time.Now().Add(viper.GetDuration("REFRESH_DURATION")),
 			HttpOnly: true,
-			Secure: true,
+			//Secure: true,
 		}
 
 		http.SetCookie(w, refreshCookie)
-		err = security.UpdateJWT(w, login)
+		err = security.UpdateJWT(w, login, role)
 		if err != nil {
 			log.WithError(err).Errorf("Can't update JWT")
 		}

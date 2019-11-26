@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"itmo-ps-auth/database"
 	"itmo-ps-auth/logger"
+	"itmo-ps-auth/security"
 	"net/http"
 	"time"
 )
@@ -17,6 +18,7 @@ type DataSeries struct {
 
 type Result struct {
 	Login string
+	Role string
 	Data [][]DataSeries
 }
 
@@ -79,12 +81,20 @@ func Index(w http.ResponseWriter, r *http.Request) {
 
 	JWTCookie, _ := r.Cookie("JWT")
 	token, _, _ := p.ParseUnverified(JWTCookie.Value, &jwt.StandardClaims{})
-	login := token.Claims.(*jwt.StandardClaims).Subject
+	stdClaims := token.Claims.(*jwt.StandardClaims)
+	login := stdClaims.Subject
+	role := stdClaims.Id
 
-	err = tmpl.Execute(w, Result{
+	result := &Result{
 		Login: login,
+		Role: role,
 		Data:  [][]DataSeries{cpu, memory, la5},
-	})
+	}
+	if role == security.RoleStudent {
+		result.Data = [][]DataSeries{cpu}
+	}
+
+	err = tmpl.Execute(w, result)
 	if err != nil {
 		log.WithError(err).Errorf("Can't execute index.html")
 		http.Error(w, "Template error", http.StatusServiceUnavailable)
