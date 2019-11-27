@@ -1,6 +1,6 @@
 package security
 
 const (
-	RoleAdmin = "admin"
-	RoleStudent = "student"
+	RoleMaster  = "master"
+	RoleServant = "servant"
 )

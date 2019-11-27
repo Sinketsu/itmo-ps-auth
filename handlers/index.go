@@ -90,7 +90,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		Role: role,
 		Data:  [][]DataSeries{cpu, memory, la5},
 	}
-	if role == security.RoleStudent {
+	if role == security.RoleServant {
 		result.Data = [][]DataSeries{cpu}
 	}
 

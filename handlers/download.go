@@ -29,7 +29,7 @@ func Download(w http.ResponseWriter, r *http.Request) {
 	stdClaims := token.Claims.(*jwt.StandardClaims)
 	role := stdClaims.Id
 
-	if role != security.RoleAdmin {
+	if role != security.RoleMaster {
 		http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 		return
 	}

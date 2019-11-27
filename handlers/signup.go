@@ -53,7 +53,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if !(role == security.RoleAdmin || role == security.RoleStudent) {
+		if !(role == security.RoleMaster || role == security.RoleServant) {
 			http.Error(w, "valid role is required", http.StatusBadRequest)
 			return
 		}
