@@ -16,8 +16,9 @@ CREATE TABLE IF NOT EXISTS users.tokens (
 CREATE DATABASE IF NOT EXISTS stats;
 CREATE TABLE IF NOT EXISTS stats.stats (
     timestamp DateTime,
+    d Date MATERIALIZED toDate(timestamp),
     type Enum('cpu' = 1, 'memory' = 2, 'la5' = 3),
     value Float64
-) ENGINE=StripeLog();
+) ENGINE=MergeTree(d, (timestamp), 8192);
 
 
