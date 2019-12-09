@@ -74,3 +74,21 @@ func CollectMemory(log *logrus.Entry) {
 		return
 	}
 }
+
+func DeleteOldMetrics() {
+	log := logger.New("Metrics")
+	ticker := time.NewTicker(10 * time.Minute)
+
+	for {
+		<- ticker.C
+
+		db := database.Get("stats")
+		err := database.ExecCtx(context.Background(), db,
+			"ALTER TABLE stats DELETE WHERE timestamp <= (now() - toIntervalMinute(60))")
+
+		if err != nil {
+			log.WithError(err).Errorf("Can't delete old metrics")
+			return
+		}
+	}
+}

@@ -32,6 +32,7 @@ func main() {
 	log.Infof("Starting listen on %v", viper.GetString("ADDR"))
 	go listenHTTP(srv)
 	go metrics.Collect()
+	go metrics.DeleteOldMetrics()
 
 	// wait for system signals
 	<-signals
